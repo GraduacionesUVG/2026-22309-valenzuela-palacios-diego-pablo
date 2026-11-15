@@ -1,0 +1,91 @@
+# data
+/data/
+
+# packages/core bundles class_metrics.json + feature_importance.json from
+# training/models/ at build time (postbuild script) — ship them in the package
+!packages/core/data/
+!packages/core/data/class_metrics.json
+!packages/core/data/feature_importance.json
+
+# Claude
+.claude/
+
+# Node
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Environment
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# Large training data (regenerate from parsers + extractor CLI)
+training/data_clean/*.jsonl
+training/data_clean/*.csv
+training/data_clean/*.parquet
+training/data_clean/near_duplicates_report.txt
+training/splits/*.parquet
+
+# Sklearn model binaries — RF pkls are large (rf_v2.pkl = 18MB); use ONNX for inference
+training/models/*.pkl
+# IF pkls are small (~1MB) and needed for local reproducibility without re-running F3.5
+!training/models/if_v*.pkl
+# rf_v11.pkl specifically is tracked: it's the currently-promoted/evaluated version
+# (parity_report.json, v11_test_results.json cite it) — an untracked promoted model
+# is exactly how a candidate retrain silently clobbered it with no recovery path
+# (see docs/limitations.md and the R2 test-set-relock incident). Older rf_v*.pkl
+# stay ignored; only the live one needs this guarantee.
+!training/models/rf_v11.pkl
+
+# RF metadata JSON (Fase 6 gate input, training/gates/gate_metrics.py) — regenerated
+# alongside the gitignored RF pkl on every run, same treatment. IF's metadata JSON
+# stays tracked (if_v*_metadata.json), matching the IF pkl exception above.
+# rf_v11_metadata.json is tracked for the same reason rf_v11.pkl now is.
+training/models/rf_v*_metadata.json
+!training/models/rf_v11_metadata.json
+
+# packages/core bundles ONNX models from training/models/ at build/publish time;
+# avoid duplicating the binaries in git (training/models/ is the source of truth)
+packages/core/models/*.onnx
+*.tgz
+
+# MLOps: generated SQLite telemetry / SQLite databases (regenerate via simulate-fleet)
+*.db
+packages/mlops/data/
+
+# MLOps CT pipeline: candidate models and production backups (training/ct_pipeline.py) —
+# regenerable, never committed; only a promoted (Fase 8) rf.onnx/if.onnx is tracked
+training/models/*_candidate*.onnx
+training/models/*_candidate_metadata.json
+training/models/.*.production_backup
+# Split candidates (training/ct_pipeline.py's backup_splits/save_split_candidate) —
+# same treatment: regenerable, never committed; only a promoted test.lock.sha256
+# (after a deliberate re-lock) is tracked.
+training/splits/*_candidate*
+
+# Fase 6 gate reports (training/gates/run_all_gates.py) — one per run, regenerable
+training/results/gate_report_*.json
+# SQLite runtime artifacts (EventStore/WebhookStore dbPath default) — dev/test
+# output, not source. Accidentally committed once (see .claude/decisiones.md).
+*.db
+*.db-journal
+!.env.example

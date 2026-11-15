@@ -1,0 +1,76 @@
+{
+  "name": "logsguardian",
+  "version": "0.1.1",
+  "description": "Middleware RASP de deteccion de amenazas (SQLi, XSS, Path Traversal, Command Injection) para Node.js/Express, con inferencia ONNX (Random Forest + Isolation Forest)",
+  "keywords": [
+    "rasp",
+    "security",
+    "middleware",
+    "express",
+    "waf",
+    "sqli",
+    "xss",
+    "path-traversal",
+    "command-injection",
+    "intrusion-detection",
+    "machine-learning",
+    "onnx"
+  ],
+  "homepage": "https://github.com/xtsebas/logSguarDian/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/xtsebas/logSguarDian/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtsebas/logSguarDian.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "contributors": [
+    { "name": "Sebastian Huertas" },
+    { "name": "Diego Valenzuela" }
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "logsguardian": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "models",
+    "data",
+    "scripts"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "postbuild": "cp ../../training/models/class_metrics.json data/ && cp ../../training/models/feature_importance.json data/ && cp ../../training/models/rf.onnx models/ && cp ../../training/models/if.onnx models/ && cp ../../training/models/parity_report.json models/",
+    "postinstall": "node scripts/postinstall.js",
+    "test": "jest --selectProjects default --forceExit && pnpm run test:isolated",
+    "test:isolated": "for f in cli-attacks-list cli-attacks-inspect cli-attacks-summary cli-config-init cli-config-show cli-config-validate cli-config-set cli-endpoints-profile cli-endpoints-top cli-endpoints-report cli-webhooks-add cli-webhooks-test cli-webhooks-remove cli-webhooks-list; do jest --selectProjects cli-cwd-isolated --runInBand --forceExit \"tests/$f.test.ts\" || exit 1; done",
+    "test:smoke": "jest --selectProjects smoke --runInBand --forceExit",
+    "test:all": "jest --selectProjects default ort-parity --forceExit && pnpm run test:isolated && pnpm run test:smoke"
+  },
+  "dependencies": {
+    "@logsguardian/extractor": "workspace:*",
+    "better-sqlite3": "^11.0.0",
+    "onnxruntime-node": "^1.19.0"
+  },
+  "bundledDependencies": [
+    "@logsguardian/extractor"
+  ],
+  "peerDependencies": {
+    "express": "^4.18.0 || ^5.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.5.0"
+  }
+}
